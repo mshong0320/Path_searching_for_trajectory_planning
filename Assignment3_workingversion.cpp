@@ -8,12 +8,10 @@ using namespace std;
 CS436Context::vertex interpolate( const CS436Context::vertex& qA, 
  const CS436Context::vertex& qB, 
  double t ){  
-
   CS436Context::vertex qt( qA.size(), 0.0 );
   for( std::size_t i=0; i<qt.size(); i++ )
     { qt[i] = ( 1.0 - t )*qA[i] + t*qB[i]; }
   return qt;
-
 }
 
 CS436Context::CS436Context( const robot_model::RobotModelConstPtr& robotmodel,
@@ -26,36 +24,28 @@ CS436Context::CS436Context( const robot_model::RobotModelConstPtr& robotmodel,
 CS436Context::~CS436Context(){}
 
 bool CS436Context::state_collides( const vertex& q ) const {
-
   // create a robot state
   moveit::core::RobotState robotstate( robotmodel );
   robotstate.setJointGroupPositions( "manipulator", q );
-
   if( getPlanningScene()->isStateColliding( robotstate, "manipulator", false ) )
     { return true; }
   else
-    { return false; }
-  
+    { return false; } 
 }
 
 bool CS436Context::edge_collides( const vertex& qA, 
  const vertex& qB, 
  double step )const{
-  
   // Simple trajectory in configuration space
   for( double t=0.0; t<1.0; t+=step ){
       if( state_collides( interpolate( qA, qB, t ) ) ) { return true; }
   }
-
+ 
   return false;
-
 }
 
 std::vector<CS436Context::vertex> CS436Context::make_vertices( int N )const{
-
   std::vector<CS436Context::vertex> V( N );
-
-  // TODO
   // configurations
   std::cout<<"vertices now"<<std::endl;
   //find random points for the end effector by finding random joint angles
@@ -76,29 +66,20 @@ srand(time(NULL));
      }while(state_collides(q));//should not collide
     
     V[i]=q; //build up vector of points
-    
    }
   
   std::cout<<"no.of vertices:"<<V.size()<<std::endl;
-
   //for(int i=0;i<V.size();i++)
     //{std::cout<<"V in make_vertices="<<V[i][0]<<","<<V[i][1]<<","<<V[i][2]<<","<<V[i][3]<<","<<V[i][4]<<","<<V[i][5]<<std::endl;
       //}
-
-
   return V;
-
 }
 
 std::vector<CS436Context::edge> CS436Context::make_edges( const std::vector<CS436Context::vertex>& V )const{
-
   std::vector<CS436Context::edge> E;
-
   // TODO
   // Find and return collision-free edges to connect vertices in V
-std::cout<<"edges now"<<std::endl;
- 
-
+  std::cout<<"edges now"<<std::endl;
   //for all points find edges between each that do not collide in a combinational fashion (vs permutative)
   for(int i=0;i<V.size();i++)
 {
@@ -110,26 +91,20 @@ std::cout<<"edges now"<<std::endl;
       }
     }
   }
-
-        //std::cout<<"edge:"<<E.size<<std::endl;
+      //std::cout<<"edge:"<<E.size<<std::endl;
       //for(int i=0;i<E.size();i++){
 //std::cout<<"e:"<<E[i].first<<"   "<<E[i].second<<std::endl;}
-
-      
-
   return E;
-
 }
 
 CS436Context::index
 CS436Context::search_accessibility
 ( const std::vector<CS436Context::vertex>& V, 
   const CS436Context::vertex& q )const{
-
   // TODO
   // Find and return the index of the accessible vertex
   // return V.size() if no vertex is accessible
- std::cout<<"accessibility now"<<std::endl;
+  std::cout<<"accessibility now"<<std::endl;
  
   //Store the very first accesible vertex you can find
   for(int i=0;i<V.size();i++)
@@ -141,30 +116,24 @@ CS436Context::search_accessibility
   }
 
   return V.size();
-
 }
 
 CS436Context::index 
 CS436Context::search_departability
 ( const std::vector<CS436Context::vertex>& V, 
   const CS436Context::vertex& q )const{
-
-  // TODO
   // Find and return the index of the departable vertex
   // return V.size() if no vertex is departable
-std::cout<<"departability now"<<std::endl;
-
- //Store the very first departible vertex you can find
+  std::cout<<"departability now"<<std::endl;
+  //Store the very first departible vertex you can find
   for(int i=0;i<V.size();i++)
   {
     if(!CS436Context::edge_collides(q,V[i]))
     {
-return i;
+      return i;
     }
   }
-
   return V.size();
-
 }
 
 
@@ -174,17 +143,12 @@ CS436Context::search_path
   const std::vector<CS436Context::edge>& E,
   CS436Context::index idx_start,
   CS436Context::index idx_final )const{
-
   std::vector<CS436Context::index> path;
-
-// TODO
  // Find and return a path between the vertices idx_start and idx_final
-
   
-std::cout<<"search path now"<<std::endl;
-
-  std::vector<CS436Context::act_vert> a;
-for(int i=0; i<V.size(); i++)
+ std::cout<<"search path now"<<std::endl;
+ std::vector<CS436Context::act_vert> a;
+ for(int i=0; i<V.size(); i++)
     {
      CS436Context::act_vert b;
      b.idx=i;
@@ -193,9 +157,8 @@ for(int i=0; i<V.size(); i++)
     } 
 
   std::queue<CS436Context::act_vert> c;
- 
 
- std::cout<<"queuing now"<<std::endl; 
+  std::cout<<"queuing now"<<std::endl; 
 
   c.push(a[idx_start]);
   while(!c.empty())
@@ -204,44 +167,42 @@ for(int i=0; i<V.size(); i++)
     c.pop();
     for(int i=0;i<E.size();i++) 
     {
-        if(E[i].first==b.idx && a[E[i].second].parent==V.size()) 
+      if(E[i].first==b.idx && a[E[i].second].parent==V.size()) 
         {
-    a[E[i].second].parent=b.idx;        
+          a[E[i].second].parent=b.idx;        
           c.push(a[E[i].second]);
         }
 
-        if(E[i].second==b.idx && a[E[i].first].parent==V.size()) 
+      if(E[i].second==b.idx && a[E[i].first].parent==V.size()) 
         {
-    a[E[i].first].parent=b.idx;
+          a[E[i].first].parent=b.idx;
           c.push(a[E[i].first]);
         }
-     }
-  }
+    }
+ }
 
-  CS436Context::index active=idx_final;
+ CS436Context::index active=idx_final;
 
   while(active!=idx_start && active!=V.size()) 
-  { 
+   { 
     path.push_back(active);
     active=a[active].parent;
-  } 
+   } 
   path.push_back(idx_start);
-
-  if(active==V.size())
+  
+ if(active==V.size())
   {
     return CS436Context::path();
   }
-  std::reverse(path.begin(),path.end());
-   std::cout<<"found a path"<<std::endl; 
+ std::reverse(path.begin(),path.end());
+ std::cout<<"found a path"<<std::endl; 
 
-  return path;
-
+ return path;
 }
 
 
 // This is the method that is called each time a plan is requested
 bool CS436Context::solve( planning_interface::MotionPlanResponse &res ){
-
   // Create a new empty trajectory
   res.trajectory_.reset(new robot_trajectory::RobotTrajectory(robotmodel, 
        getGroupName()));
@@ -258,8 +219,7 @@ bool CS436Context::solve( planning_interface::MotionPlanResponse &res ){
   // start the timer
   ros::Time begin = ros::Time::now();
 
-  // TODO
-  // Adjust N to your need
+  // Adjust N to your need for # of nodes
   int N = 100;
 
   // Create a vector of collision-free vertices
@@ -312,7 +272,6 @@ bool CS436Context::solve( planning_interface::MotionPlanResponse &res ){
   res.error_code_.val = moveit_msgs::MoveItErrorCodes::SUCCESS;
 
   return true;
-  
 }
 
 bool CS436Context::solve( planning_interface::MotionPlanDetailedResponse &res )
